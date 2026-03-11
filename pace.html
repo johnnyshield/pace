@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pace Calculator</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; padding: 20px;
+        }
+        .card {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 { font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem; color: var(--primary); }
+        .input-group { margin-bottom: 1.2rem; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; opacity: 0.8; }
+        .flex-row { display: flex; gap: 8px; align-items: center; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: border-color 0.2s;
+            text-align: center;
+        }
+        input:focus { outline: none; border-color: var(--primary); }
+        .divider { border-top: 1px solid #e2e8f0; margin: 1.5rem 0; position: relative; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        td { padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        .dist { font-weight: 600; color: var(--primary); }
+        .time { text-align: right; font-family: monospace; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="input-group">
+        <label>MILE PACE (min / sec)</label>
+        <div class="flex-row">
+            <input type="number" id="mMin" placeholder="Min" min="0">
+            <input type="number" id="mSec" placeholder="Sec" min="0" max="59">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>KM PACE (min / sec)</label>
+        <div class="flex-row">
+            <input type="number" id="kMin" placeholder="Min" min="0">
+            <input type="number" id="kSec" placeholder="Sec" min="0" max="59">
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <table>
+        <tr><td class="dist">5 km</td><td class="time" id="t5">--:--</td></tr>
+        <tr><td class="dist">10 km</td><td class="time" id="t10">--:--</td></tr>
+        <tr><td class="dist">Half (21.1k)</td><td class="time" id="tHM">--:--</td></tr>
+        <tr><td class="dist">Full (42.2k)</td><td class="time" id="tM">--:--</td></tr>
+    </table>
+</div>
+
+<script>
+    const mMin = document.getElementById('mMin'), mSec = document.getElementById('mSec');
+    const kMin = document.getElementById('kMin'), kSec = document.getElementById('kSec');
+    const MILE_TO_KM = 1.609344;
+
+    function formatTime(totalSeconds) {
+        if (!totalSeconds || totalSeconds <= 0) return "--:--";
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = Math.round(totalSeconds % 60);
+        return h > 0 
+            ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+            : `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function updateTable(secPerKm) {
+        document.getElementById('t5').innerText = formatTime(secPerKm * 5);
+        document.getElementById('t10').innerText = formatTime(secPerKm * 10);
+        document.getElementById('tHM').innerText = formatTime(secPerKm * 21.0975);
+        document.getElementById('tM').innerText = formatTime(secPerKm * 42.195);
+    }
+
+    function calcFromMile() {
+        const totalSec = (Number(mMin.value) * 60) + Number(mSec.value);
+        if (totalSec > 0) {
+            const kmSecs = totalSec / MILE_TO_KM;
+            kMin.value = Math.floor(kmSecs / 60);
+            kSec.value = Math.round(kmSecs % 60).toString().padStart(2, '0');
+            updateTable(kmSecs);
+        }
+    }
+
+    function calcFromKm() {
+        const totalSec = (Number(kMin.value) * 60) + Number(kSec.value);
+        if (totalSec > 0) {
+            const mileSecs = totalSec * MILE_TO_KM;
+            mMin.value = Math.floor(mileSecs / 60);
+            mSec.value = Math.round(mileSecs % 60).toString().padStart(2, '0');
+            updateTable(totalSec);
+        }
+    }
+
+    [mMin, mSec].forEach(i => i.addEventListener('input', calcFromMile));
+    [kMin, kSec].forEach(i => i.addEventListener('input', calcFromKm));
+</script>
+
+</body>
+</html>
